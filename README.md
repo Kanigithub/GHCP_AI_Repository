@@ -15,7 +15,7 @@ This system automates:
 ### 4 Autonomous Agents
 
 | Agent | Purpose | Trigger |
-|-------|---------|---------|
+|-------|---------|----------|
 | **Code Review** | Analyzes code quality, security, standards | Git commit |
 | **Deployment** | Orchestrates multi-environment deployments | User instruction |
 | **Docker** | Builds images, deploys containers | Deployment agent |
@@ -24,7 +24,7 @@ This system automates:
 ### 3 Core Skills
 
 | Skill | Purpose | Technology |
-|-------|---------|-----------|
+|-------|---------|-------------|
 | **Code Quality Analyzer** | Detects complexity, duplication, issues | Static analysis |
 | **Security Scanner** | Finds vulnerabilities, secrets, risks | Pattern matching |
 | **Deployment Orchestrator** | Manages deployments, health checks | Docker/Kubernetes |
@@ -32,7 +32,7 @@ This system automates:
 ### 3 Git Hooks
 
 | Hook | Purpose | Execution |
-|------|---------|-----------|
+|------|---------|----------|
 | **Post-Commit** | Triggers code review | After commit |
 | **Pre-Push** | Validates quality gates | Before push |
 | **GitHub Actions** | Full workflow automation | On push/PR |
@@ -211,17 +211,13 @@ gh workflow run code-review-deployment.yml \
 │   └── status-agent.yml
 ├── skills/                          # Core skills/implementations
 │   ├── code-quality-analyzer.js
-│   ├── security-scanner.js
-│   └── deployment-orchestrator.js
+│   └── security-scanner.js
 ├── hooks/                           # Git hooks
 │   ├── post-commit.sh
 │   └── pre-push.sh
-├── .github/workflows/               # GitHub Actions
-│   └── code-review-deployment.yml
 ├── deployment/
 │   └── environments/                # Environment configs
 │       ├── dev.json
-│       ├── staging.json
 │       └── prod.json
 ├── .codereview/
 │   └── rules.json                   # Code review rules

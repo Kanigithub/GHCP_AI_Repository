@@ -1,0 +1,96 @@
+name: Code Review Agent
+description: Automatically reviews committed code for quality, standards, bugs, and best practices
+type: autonomous-agent
+trigger: git.commit
+
+capabilities:
+  - static-code-analysis
+  - code-quality-checks
+  - security-scanning
+  - best-practices-validation
+  - performance-analysis
+
+inputs:
+  - git_commit_sha
+  - pull_request_details
+  - repository_url
+  - branch_name
+  - file_changes
+
+outputs:
+  - code_review_report
+  - issues_found
+  - suggestions
+  - pass_fail_status
+  - severity_levels
+
+workflow:
+  - step: 1
+    name: "Fetch Code Changes"
+    action: retrieve_git_diff
+    params:
+      commit_sha: ${git_commit_sha}
+  
+  - step: 2
+    name: "Static Analysis"
+    action: run_static_analysis
+    tools:
+      - eslint
+      - pylint
+      - sonarqube
+    checks:
+      - code_style
+      - complexity
+      - duplication
+  
+  - step: 3
+    name: "Security Scan"
+    action: security_vulnerability_scan
+    tools:
+      - snyk
+      - dependency-check
+    checks:
+      - known_vulnerabilities
+      - outdated_dependencies
+      - secrets_detection
+  
+  - step: 4
+    name: "Best Practices Check"
+    action: validate_best_practices
+    validations:
+      - error_handling
+      - logging
+      - documentation
+      - test_coverage
+      - code_comments
+  
+  - step: 5
+    name: "Performance Analysis"
+    action: analyze_performance_impact
+    checks:
+      - algorithmic_efficiency
+      - memory_usage
+      - api_calls
+  
+  - step: 6
+    name: "Generate Report"
+    action: create_review_report
+    output_format: markdown
+    includes:
+      - summary
+      - issues_by_severity
+      - suggestions
+      - pass_fail_verdict
+
+notification:
+  - channel: github_pr_comment
+  - channel: slack
+  - channel: email
+
+config:
+  rules_file: .codereview/rules.json
+  exclude_paths:
+    - node_modules
+    - dist
+    - build
+  min_coverage_threshold: 80

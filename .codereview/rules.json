@@ -1,0 +1,29 @@
+{
+  "code_review_rules": {
+    "max_complexity": 10,
+    "max_nesting_level": 4,
+    "min_test_coverage": 80,
+    "max_function_length": 200,
+    "max_file_size": 500,
+    "max_parameters": 5
+  },
+  "code_style_rules": {
+    "enforce_semicolons": true,
+    "enforce_quotes": "single",
+    "max_line_length": 100
+  },
+  "documentation_rules": {
+    "require_jsdoc": true
+  },
+  "security_rules": {
+    "no_hardcoded_secrets": true,
+    "no_sql_injection": true,
+    "require_input_validation": true,
+    "min_password_length": 12
+  },
+  "excluded_paths": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
+}

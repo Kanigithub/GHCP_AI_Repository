@@ -1,0 +1,106 @@
+name: Deployment Agent
+description: Orchestrates deployment to specified environments based on user instructions
+type: autonomous-agent
+trigger: user.instruction
+
+capabilities:
+  - environment-detection
+  - deployment-orchestration
+  - configuration-management
+  - rollback-handling
+  - deployment-approval
+
+inputs:
+  - target_environment
+  - deployment_instructions
+  - user_input
+  - code_review_status
+  - docker_config
+
+outputs:
+  - deployment_status
+  - deployment_logs
+  - environment_details
+  - rollback_information
+
+supported_environments:
+  - dev
+  - staging
+  - production
+  - custom
+
+workflow:
+  - step: 1
+    name: "Parse Deployment Instructions"
+    action: nlp_instruction_parsing
+    params:
+      input: ${deployment_instructions}
+      extract:
+        - target_environment
+        - deployment_type
+        - custom_params
+  
+  - step: 2
+    name: "Validate Prerequisites"
+    action: validate_deployment_readiness
+    checks:
+      - code_review_passed
+      - all_tests_passed
+      - docker_image_available
+      - environment_accessible
+      - required_secrets_present
+  
+  - step: 3
+    name: "Prepare Configuration"
+    action: prepare_environment_config
+    load_from:
+      - docker-compose.yml
+      - .env.${target_environment}
+      - deployment-config.json
+  
+  - step: 4
+    name: "Trigger Docker Build"
+    action: invoke_docker_agent
+    params:
+      environment: ${target_environment}
+      config_file: docker-compose.yml
+  
+  - step: 5
+    name: "Monitor Deployment"
+    action: monitor_deployment_status
+    tracking:
+      - container_startup
+      - health_checks
+      - port_availability
+      - resource_usage
+  
+  - step: 6
+    name: "Run Post-Deployment Tests"
+    action: execute_smoke_tests
+    environment: ${target_environment}
+  
+  - step: 7
+    name: "Report Status"
+    action: send_deployment_status
+
+approval_gates:
+  production:
+    - manual_approval_required: true
+    - notification_channels:
+      - slack
+      - email
+  
+  staging:
+    - manual_approval_required: false
+    - auto_deploy_on_review_pass: true
+
+rollback:
+  enabled: true
+  trigger_on_failure: true
+  restore_previous_version: true
+
+config:
+  environment_configs_dir: ./deployment/environments
+  secrets_manager: github_secrets
+  max_deployment_time: 600
+  health_check_timeout: 120

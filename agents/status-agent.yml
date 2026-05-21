@@ -1,0 +1,113 @@
+name: Status Agent
+description: Reports deployment and code review status back to users
+type: event-driven-agent
+trigger: agent_completion
+
+capabilities:
+  - status-aggregation
+  - multi-channel-notification
+  - status-tracking
+  - history-logging
+  - summary-generation
+
+inputs:
+  - code_review_report
+  - deployment_status
+  - docker_build_logs
+  - test_results
+  - user_preferences
+
+outputs:
+  - notification_messages
+  - status_summary
+  - detailed_logs
+  - historical_records
+
+notification_channels:
+  - github_issues_comments
+  - github_pr_comments
+  - slack_messages
+  - email_notifications
+  - webhook_events
+
+workflow:
+  - step: 1
+    name: "Aggregate Status Information"
+    action: collect_all_statuses
+    sources:
+      - code_review_agent
+      - deployment_agent
+      - docker_agent
+      - test_results
+  
+  - step: 2
+    name: "Generate Status Summary"
+    action: create_status_summary
+    sections:
+      - code_review_results
+      - deployment_status
+      - build_information
+      - test_coverage
+      - deployment_logs_summary
+  
+  - step: 3
+    name: "Format Notifications"
+    action: format_notifications
+    templates:
+      - slack: notification-templates/slack.json
+      - email: notification-templates/email.html
+      - github: notification-templates/github.md
+  
+  - step: 4
+    name: "Determine Severity Level"
+    action: assess_severity
+    levels:
+      - critical: immediate_notification
+      - high: urgent_notification
+      - medium: standard_notification
+      - low: digest_notification
+  
+  - step: 5
+    name: "Send Notifications"
+    action: dispatch_notifications
+    channels:
+      - primary: ${user_preferred_channel}
+      - secondary:
+        - slack
+        - email
+  
+  - step: 6
+    name: "Log Status History"
+    action: store_status_record
+    storage:
+      - database
+      - github_wiki
+      - artifacts_storage
+  
+  - step: 7
+    name: "Update Dashboard"
+    action: update_status_dashboard
+    dashboard_url: ${DEPLOYMENT_DASHBOARD_URL}
+    update_metrics:
+      - deployment_success_rate
+      - average_review_time
+      - code_quality_trend
+      - deployment_frequency
+
+notification_rules:
+  code_review:
+    - on_issues_found: notify_immediately
+    - on_suggestions: batch_notify
+    - on_passed: quiet_pass
+  
+  deployment:
+    - on_success: notify_user_and_channel
+    - on_failure: escalate_alert
+    - on_rollback: critical_notification
+
+config:
+  notification_timeout: 300
+  retry_failed_notifications: true
+  max_retries: 3
+  log_retention_days: 90
+  dashboard_update_interval: 30

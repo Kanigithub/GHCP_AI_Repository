@@ -1,0 +1,24 @@
+{
+  "environment": "dev",
+  "orchestrator": "docker-compose",
+  "docker_compose_file": "docker-compose.dev.yml",
+  "project_name": "app-dev",
+  "health_check_url": "http://localhost:3000/health",
+  "health_check_interval": 5,
+  "health_check_timeout": 60,
+  "services": [
+    "api",
+    "database",
+    "cache"
+  ],
+  "required_env_vars": [
+    "DATABASE_URL",
+    "REDIS_URL"
+  ],
+  "deployment_timeout": 300,
+  "auto_rollback_on_failure": true,
+  "resources": {
+    "memory_limit": "1GB",
+    "cpu_limit": "0.5"
+  }
+}

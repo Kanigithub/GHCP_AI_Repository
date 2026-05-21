@@ -1,0 +1,28 @@
+{
+  "environment": "prod",
+  "orchestrator": "kubernetes",
+  "kubernetes": {
+    "namespace": "production",
+    "deployment_name": "app-deployment",
+    "container_name": "app-container",
+    "replicas": 3
+  },
+  "health_check_url": "https://api.example.com/health",
+  "health_check_interval": 10,
+  "health_check_timeout": 120,
+  "services": [
+    "api",
+    "database",
+    "cache",
+    "monitoring"
+  ],
+  "deployment_timeout": 600,
+  "auto_rollback_on_failure": true,
+  "resources": {
+    "memory_limit": "4GB",
+    "cpu_limit": "2"
+  },
+  "approval": {
+    "required": true
+  }
+}

@@ -1,0 +1,113 @@
+name: Docker Agent
+description: Builds and triggers Docker containers for target environments
+type: autonomous-agent
+trigger: deployment_agent.request
+
+capabilities:
+  - docker-build
+  - container-orchestration
+  - registry-management
+  - image-tagging
+  - container-monitoring
+
+inputs:
+  - dockerfile_path
+  - docker_compose_file
+  - target_environment
+  - build_args
+  - registry_credentials
+
+outputs:
+  - build_status
+  - image_id
+  - container_logs
+  - registry_push_status
+  - container_info
+
+workflow:
+  - step: 1
+    name: "Validate Docker Configuration"
+    action: validate_docker_files
+    check_files:
+      - Dockerfile
+      - docker-compose.yml
+      - .dockerignore
+  
+  - step: 2
+    name: "Prepare Build Context"
+    action: prepare_build_context
+    tasks:
+      - clean_build_dir
+      - copy_source_code
+      - apply_env_specific_config
+      - inject_build_args
+  
+  - step: 3
+    name: "Build Docker Image"
+    action: execute_docker_build
+    params:
+      dockerfile: ${dockerfile_path}
+      build_args:
+        ENVIRONMENT: ${target_environment}
+        BUILD_DATE: ${current_timestamp}
+        VCS_REF: ${git_commit_sha}
+      tags:
+        - ${registry}/${app_name}:${version}
+        - ${registry}/${app_name}:${target_environment}-latest
+  
+  - step: 4
+    name: "Run Image Validation"
+    action: validate_docker_image
+    checks:
+      - image_size
+      - layer_analysis
+      - security_scan
+      - vulnerability_check
+  
+  - step: 5
+    name: "Push to Registry"
+    action: push_to_container_registry
+    registry: ${container_registry}
+    credentials: ${registry_credentials}
+    tags:
+      - latest
+      - ${version}
+      - ${git_commit_sha}
+  
+  - step: 6
+    name: "Deploy Containers"
+    action: deploy_containers
+    orchestrator: docker-compose
+    params:
+      file: ${docker_compose_file}
+      project_name: ${project_name}-${target_environment}
+      environment_file: .env.${target_environment}
+  
+  - step: 7
+    name: "Collect Container Logs"
+    action: fetch_container_logs
+    follow: true
+    duration: 120
+  
+  - step: 8
+    name: "Report Build Status"
+    action: send_build_status
+
+build_environment:
+  docker_host: ${DOCKER_HOST}
+  buildkit_enabled: true
+  max_parallel_builds: 2
+
+registry:
+  type: docker_hub
+  registry_url: ${CONTAINER_REGISTRY_URL}
+  credentials_source: github_secrets
+
+config:
+  dockerfile_path: ./Dockerfile
+  docker_compose_path: ./docker-compose.yml
+  build_context: .
+  image_registry: docker.io
+  image_prefix: ${DOCKER_USERNAME}
+  keep_build_cache: true
+  enable_security_scan: true
